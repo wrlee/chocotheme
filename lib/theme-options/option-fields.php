@@ -120,7 +120,10 @@ define("VALID_VALUE", 1);
             $this->reset_value();
         }
     }
-    function render($field_html, $colspan = false) {
+//	function render($field_html, $colspan = false) {
+    function render() {
+		$field_html = func_get_arg(0);
+		$colspan = func_get_arg(1);
         $html = '
             <tr valign="top" class="' . get_class($this) . ' field-' . $this->name . '" ' . ($this->hidden ? 'style="display: none; "' : '') . '>
                 <th scope="row" class="field-label"><label for="' . $this->name . '">' . $this->label . '</label></th>
