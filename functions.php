@@ -1,9 +1,10 @@
 <?php
-wp_enqueue_script('jquery');// Include jquery
-automatic_feed_links();
+wp_enqueue_scripts('jquery');// Include jquery 2017-12-08 WRL Changed from wp_enqueue_script()
+add_theme_support( 'automatic-feed-links' ); // 2017-12-08 WRL deprecated automatic_feed_links();
 
 register_sidebar(array(
-	'name'=>'sidebar',
+	'name'	=> 'sidebar',
+	'id'	=> 'sidebar-id-1',	// 2017-12-08 WRL add id field
     'before_widget' => '<li id="%1$s" class="widget %2$s">',
     'after_widget' => '</li>',
     'before_title' => '<h2 class="widgettitle">',

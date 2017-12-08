@@ -4,7 +4,8 @@ class color_scheme {
 	var $name;
 	var $colors = array();
 	
-	function color_scheme($name) {
+//	function color_scheme($name) { // 2017-12-08 WRL deprecated constructor name
+	function __construct($name) {
 	    $this->name = $name;
 	}
 	function add_color($hex_code) {

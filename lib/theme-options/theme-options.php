@@ -22,14 +22,15 @@ class OptionsPage {
 	/* Put the options page under theme options by default */
 	var $parent = 'options-general.php';
 	
-	function OptionsPage($options) {
+//	function OptionsPage($options) { // 2017-12-08 WRL Deprecated constructor name
+	function __construct($options) {
 	    foreach ($options as $option) {
 	    	if (!is_a($option, 'base_wp_option')) {
 	    		trigger_error("Not wp_option object was passed to OptionsPage creating method", E_USER_ERROR);
 	    	}
 	    }
 	    $this->options = $options;
-	    $this->theme_name = get_current_theme();
+	    $this->theme_name = (string)wp_get_theme();//get_current_theme(); // 2017-12-08 deprecated
 		$this->file = basename(__FILE__);
 	    $this->title = $this->theme_name . " Options";
 	    $this->needed_permissions = 'edit_themes';
@@ -66,9 +67,10 @@ class OptionsPage {
 	    add_action('admin_menu', array($this, 'attach_to_wp_admin'));
 	}
 	function replace_choco_theme_icon() {
-		global $current_user;
-		get_currentuserinfo();
-		$color_scheme = get_usermeta($current_user, 'admin_color');
+//		global $current_user;	// 2017-12-08 WRL get_currentuserinfo() deprecated
+//		get_currentuserinfo();	// 2017-12-08 WRL get_currentuserinfo() deprecated
+		$current_user = wp_get_current_user();
+		$color_scheme = get_user_meta($current_user, 'admin_color'); // 2017-12-08 WRL previously get_usermeta(), deprecated
 		$icons_root = get_bloginfo('stylesheet_directory') . '/lib/images/';
 		$this->icon = "{$icons_root}choco-icon-$color_scheme.gif";
 		?>

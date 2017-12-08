@@ -28,7 +28,7 @@ define("VALID_VALUE", 1);
     
     var $hidden = false;
     
-    /*static*/ 
+    static // 2017-12-08 WRL Make, explicitly static
     function factory($opt_type, $name, $label=null) {
         $class_name = "Wp_option_$opt_type";
         if (!class_exists($class_name)) {
@@ -51,7 +51,8 @@ define("VALID_VALUE", 1);
     }
     
     /* Cosntructor. Do not override, use init() instead */ 
-    /* final */ function base_wp_option($name, $label) {
+//  /* final */ function base_wp_option($name, $label) { // 2017-12-08 WRL deprecated constructor name
+    /* final */ function __construct($name, $label) {
         $this->name = $name;
         $this->label = $label;
         $this->init();
@@ -123,7 +124,7 @@ define("VALID_VALUE", 1);
 //	function render($field_html, $colspan = false) {
     function render() {
 		$field_html = func_get_arg(0);
-		$colspan = func_get_arg(1);
+		$colspan = $numargs >= 2 ? func_get_arg(1) : false;
         $html = '
             <tr valign="top" class="' . get_class($this) . ' field-' . $this->name . '" ' . ($this->hidden ? 'style="display: none; "' : '') . '>
                 <th scope="row" class="field-label"><label for="' . $this->name . '">' . $this->label . '</label></th>
@@ -359,7 +360,7 @@ class wp_option_file extends wp_option {
     }
 }
 
-// Emulate static propertie in PHP4
+// Emulate static property in PHP4
 $wp_option_image__stylesheet_printed = false;
 
 class wp_option_image extends wp_option_file {
