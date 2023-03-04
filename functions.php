@@ -1,14 +1,16 @@
 <?php
-wp_enqueue_scripts('jquery');// Include jquery 2017-12-08 WRL Changed from wp_enqueue_script()
-add_theme_support( 'automatic-feed-links' ); // 2017-12-08 WRL deprecated automatic_feed_links();
+wp_enqueue_scripts('jquery'); // Include jquery, renmaed from wp_enqueue_script()
+add_theme_support( 'automatic-feed-links' ); // deprecated automatic_feed_links()
 
 register_sidebar(array(
-	'name'	=> 'sidebar',
-	'id'	=> 'sidebar-id-1',	// 2017-12-08 WRL add id field
-    'before_widget' => '<li id="%1$s" class="widget %2$s">',
-    'after_widget' => '</li>',
-    'before_title' => '<h2 class="widgettitle">',
-    'after_title' => '</h2>',
+	'name' => 'Sidebar',			// "sidebar" to "Sidebar"
+	'id'	 => 'sidebar-1',		// Add id field; and renamed from "sidebar-id-1" to "sidebar-1" to enable dyanmic_sidebar()
+	'description' => 'Primary sidebar',
+//	'class' => 'sidebar',
+   'before_widget' => '<li id="%1$s" class="widget %2$s">',
+   'after_widget' => '</li>',
+   'before_title' => '<h2 class="widgettitle">',
+   'after_title' => '</h2>',
 ));
 
 function attach_theme_settings() {
@@ -36,10 +38,10 @@ function print_comment($comment, $args, $depth) {
 				<?php if ($comment->comment_approved == '0') : ?>
 			        <em><?php _e('Your comment is awaiting moderation.') ?></em><br />
 			    <?php endif; ?>
-			    
+
 				<?php comment_text() ?>
 				<div class="alignleft"><?php edit_comment_link(__('(Edit)'),'  ','') ?></div>
-				
+
 			</div>
 			<div class="reply">
 		        <?php comment_reply_link(array_merge( $args, array('depth' => $depth, 'max_depth' => $args['max_depth']))) ?>
@@ -49,7 +51,7 @@ function print_comment($comment, $args, $depth) {
 	<?php
 }
 
-# crawls the pages tree up to top level page ancestor 
+# crawls the pages tree up to top level page ancestor
 # and returns that page as object
 function get_page_ancestor($page_id) {
     $page_obj = get_page($page_id);
@@ -69,11 +71,11 @@ function choco_print_pages_nav() {
 	} else {
 		$excluded_pages = '';
 	}
-	
+
     $pages = get_pages("parent=0&child_of=0&sort_column=menu_order&$excluded_pages");
-    
+
     $html = '';
-    
+
     $i = 0;
     foreach ($pages as $page) {
         $subpages = get_pages('child_of=' . $page->ID . '&parent=' . $page->ID . '&sort_column=menu_order');
@@ -82,24 +84,24 @@ function choco_print_pages_nav() {
     	if (is_page() && $current_page_ancestor->ID==$page->ID) {
     		$classes[] = "current_page_item";
     	}
-    	
+
     	if ($has_dropdown) {
     		$classes[] = "has_dropdown";
     	}
     	$html .= '<li class="' . implode(' ', $classes) . '">';
     	$html .= '<a href="' . get_permalink($page->ID) . '"><span>';
-    		
+
 		if ($has_dropdown) {
 			$html .= '<span>' . apply_filters('the_title', $page->post_title) . '</span>';
 		} else {
 			$html .= apply_filters('the_title', $page->post_title);
 		}
-		
+
     	$html .= '</span></a>';
     	if ($has_dropdown) {
     		$html .= choco_get_pages_nav_dropdown($page, intval(get_option('dropdown_depth', 2)));
     	}
-    	
+
     	$html .= '</li>';
     	if ($i==$nav_limit) {
     		break;
@@ -133,9 +135,9 @@ function choco_print_categories_nav() {
 	} else {
 		$excluded_cats = '';
 	}
-	
+
     $categories = get_categories("$excluded_cats");
-	
+
     $html = '';
     $i=0;
     foreach ($categories as $category) {
@@ -144,12 +146,12 @@ function choco_print_categories_nav() {
     		$classes[] = "current_page_item";
     	}
     	$html .= '<li class="' . implode(' ', $classes) . '"><a href="' . get_category_link($category->term_id) . '"><span>' . $category->name . '</span></a></li>';
-    	
+
     	if ($i==$nav_limit) {
     		break;
     	}
     	$i++;
-    	
+
     }
     echo $html;
 }
@@ -167,13 +169,13 @@ function choco_get_body_style() {
     $bg_color = get_option('background_color', '#3A2820');
     $bg_image = get_option('background_image');
     $bg_repeat = get_option('background_repeat');
-    
+
     $style = 'background: ' . $bg_color;
     if ($bg_image) {
     	$style .= ' url(' . $bg_image . ') center top ' . $bg_repeat;
     }
     $style .= ';';
-    
+
     return $style;
 }
 

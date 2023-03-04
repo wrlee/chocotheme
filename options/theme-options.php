@@ -3,10 +3,10 @@ function attach_main_options_page() {
 	$title = "Choco Options";
 	add_menu_page(
 		$title,
-		$title, 
-		'edit_themes', 
-	    basename(__FILE__),
-		create_function('', '')
+		$title,
+		'edit_themes',
+	  basename(__FILE__),
+		function() {}
 	);
 }
 add_action('admin_menu', 'attach_main_options_page');
@@ -61,10 +61,10 @@ function print_color_scheme_background_changer_js() {
 		return to_hex(r) + to_hex(g) + to_hex(b);
 	}
 	function to_hex(N) {
-		if (N==null) 
+		if (N==null)
 			return "00";
-		N = parseInt(N); 
-		if (N==0 || isNaN(N)) 
+		N = parseInt(N);
+		if (N==0 || isNaN(N))
 		    return "00";
 		N = Math.max(0,N);
 		N = Math.min(N,255);
