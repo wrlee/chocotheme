@@ -4,53 +4,53 @@ define("VALID_VALUE", 1);
 /*abstract*/ class base_wp_option {
     /* Name of the option, as it will be insrted in database. No funny charachters please! */
     var $name;
-    
+
     /* Label of the option, as it will be shown on settings page */
     var $label;
-    
+
     /* Type of the option - i.e. text option, checkbox option etc. Every option type is
        subclass of Wp_option class, and its name is "wp_option_{$option_type}" */
     var $type;
-    
+
     /* Value of the option when the use hasn't setuped it yet.*/
     var $default_value;
-    
+
     /* Value of the option */
     var $value;
-    
+
     /* Hash that keeps key-value pairs of custom HTML attributes */
     var $html_attrs = array();
-    
+
     /* Extra "help" text to be displayed under the field on the options's admin form. */
     var $help_text;
-    
+
     var $validation_error;
-    
+
     var $hidden = false;
-    
+
     static // 2017-12-08 WRL Make, explicitly static
     function factory($opt_type, $name, $label=null) {
         $class_name = "Wp_option_$opt_type";
         if (!class_exists($class_name)) {
             trigger_error("Cannot create option from type $opt_type -- unknown type", E_USER_ERROR);
         }
-        
+
         if (empty($name)) {
             trigger_error("Cannot create option without name", E_USER_ERROR);
         }
         if (preg_match('~[^a-zA-Z0-9_]~', $name)) {
-            trigger_error("Option name can include only latin letters, numbers, dashes and underscores, 
+            trigger_error("Option name can include only latin letters, numbers, dashes and underscores,
                     \"$name\" is not valid option name", E_USER_ERROR);
         }
-        
+
         if (is_null($label)) {
             $label = ucwords(str_replace(array('_', '-'), ' ', $name));
         }
-        
+
         return new $class_name($name, $label);
     }
-    
-    /* Cosntructor. Do not override, use init() instead */ 
+
+    /* Constructor. Do not override, use init() instead */
 //  /* final */ function base_wp_option($name, $label) { // 2017-12-08 WRL deprecated constructor name
     /* final */ function __construct($name, $label) {
         $this->name = $name;
@@ -60,25 +60,25 @@ define("VALID_VALUE", 1);
             $this->admin_init();
         }
     }
-    
+
     /* Implement this in child classes if you need to do some initialization.
        This will be called immediatlly after the constructor */
     function init() {}
     /* Same as above, but for amin */
     function admin_init() {}
-    
+
     /* Collects information from input and setups object value */
     /*public*/ function set_value_from_input() {
         $this->set_value($_REQUEST[$this->name]);
     }
-    
+
     /* This needs to be implemented in every child class */
     /*abstract*/ function render() {}
-    
+
     function set_value($value) {
         $this->value = $value;
     }
-    
+
     /* You can setup HTML tag attributes via this field. Pass them in hash array where key is the attribute name
        and value is attribute value, i.e.:
        array(
@@ -99,17 +99,17 @@ define("VALID_VALUE", 1);
     function help_text($help_text) {
         $this->help_text = $help_text;
     }
-    
+
     function get_error() {
         return $this->validation_error;
     }
-    
+
     function hide() {
         $this->hidden = true;
     }
 
 }
-// Base class for all options that use wordpress interface for managing options via 
+// Base class for all options that use wordpress interface for managing options via
 // add_option / update_option / get_option
 
 /*abstract*/ class wp_option extends base_wp_option {
@@ -123,6 +123,7 @@ define("VALID_VALUE", 1);
     }
 //	function render($field_html, $colspan = false) {
     function render() {
+        $numargs = func_num_args(); //  WRL 3/28/23 missing?
 		$field_html = func_get_arg(0);
 		$colspan = $numargs >= 2 ? func_get_arg(1) : false;
         $html = '
@@ -134,10 +135,10 @@ define("VALID_VALUE", 1);
         return $html;
     }
     function save() {
-        $this->value = get_magic_quotes_gpc() ? stripslashes($this->value) : $this->value;
+        // $this->value = get_magic_quotes_gpc() ? stripslashes($this->value) : $this->value;   WRL 3/28/23 nop for PHP 8
         update_option($this->name, $this->value);
     }
-    
+
     function set_default_value($default_vallue) {
         $current_value = get_option($this->name);
         if ($current_value) {
@@ -147,16 +148,16 @@ define("VALID_VALUE", 1);
         add_option($this->name, $default_vallue);
         $this->set_value($default_vallue);
     }
-    
+
     function reset_value() {
         $this->value = $this->default_value;
         $this->save();
     }
-    
+
     function add_to_get($key, $val) {
         return '?' . preg_replace('~&?' . preg_quote($key) . '(=|$|&)([^&]*)?~', '', $_SERVER['QUERY_STRING']) . '&' . $key . '=' . $val;
     }
-    
+
     function get_reset_link() {
         return $this->add_to_get('delete', $this->name);
     }
@@ -186,7 +187,7 @@ class wp_option_int extends wp_option_text {
 	    $this->set_value($val);
 	}
 }
-// 
+//
 class wp_option_textarea extends wp_option {
     function admin_init() {
         wp_option::admin_init();
@@ -196,7 +197,7 @@ class wp_option_textarea extends wp_option {
                 'class'=>'regular-text',
                 'rows'=>'5',
                 /**/
-                'style'=>'width: 500px', 
+                'style'=>'width: 500px',
             ),
             $this->html_attrs
         );
@@ -212,12 +213,12 @@ class wp_option_textarea extends wp_option {
 
 class wp_option_header_scripts extends wp_option_textarea {
     var $help_text = 'If you need to add scripts to your header, you should enter them in this box.';
-    
+
     function init() {
         wp_option_textarea::init();
         add_action('wp_head', array($this, 'print_the_code'));
     }
-    
+
     function print_the_code() {
         echo get_option($this->name);
     }
@@ -282,12 +283,12 @@ class wp_option_select extends wp_option {
     }
 }
 /**
-* 
+*
 */
 class wp_option_file extends wp_option {
     /**
      * http://xref.limb-project.com/tests_runner/lib/spikephpcoverage/src/util/Utility.php.source.txt
-     * 
+     *
      * Make directory recursively.
      * (Taken from: http://aidan.dotgeek.org/lib/?file=function.mkdirr.php)
      *
@@ -308,7 +309,7 @@ class wp_option_file extends wp_option {
                 return mkdir($dir, $mode);
             }
         }
-    
+
         return false;
     }
     function render() {
@@ -336,17 +337,17 @@ class wp_option_file extends wp_option {
         }
         $upload_location = wp_upload_dir();
         $upload_dir = $upload_location['path'];
-        
+
         $filename = preg_replace('~[^\w\.]~', '', $_FILES[$this->name]['name']);
-        
+
         $destination = $upload_dir . '/' . $filename;
-        
+
         $filename_ch = 1;
         while (file_exists($destination)) {
             $destination = $upload_dir . '/' . $filename_ch . '-' . $filename;
             $filename_ch++;
         }
-        
+
         if (copy($_FILES[$this->name]['tmp_name'], $destination)) {
             if ($this->value && file_exists($upload_dir . $this->value)) {
                 unlink($upload_dir . $this->value);
@@ -410,7 +411,7 @@ class wp_option_rich_text extends wp_option_textarea {
         add_action('admin_head', array($this, 'include_js'));
         wp_option_textarea::admin_init();
     }
-    
+
     function render() {
         global $___tiny_mce_loaded;
         ob_start();
@@ -439,7 +440,7 @@ class wp_option_separator extends wp_option {
 class wp_option_img_url extends wp_option_text {
     function render() {
         $field_html =
-            '<input type="text" name="' . $this->name . '" value="' . $this->value . '" id="' . $this->name . '" ' . $this->get_custom_attrs() . ' />' . 
+            '<input type="text" name="' . $this->name . '" value="' . $this->value . '" id="' . $this->name . '" ' . $this->get_custom_attrs() . ' />' .
             '<a onclick="return false;" title="Add an Image" class="thickbox" style="text-decoration: none" id="add_image" href="media-upload.php?post_id=0&amp;type=image&amp;TB_iframe=true&amp;width=640&amp;height=464"><img alt="Add an Image" src="images/media-button-image.gif"/> Open Media Gallery</a>';
         return wp_option::render($field_html);
     }
@@ -449,7 +450,7 @@ $wp_option_set__sort_js_printed = false;
 class wp_option_set extends wp_option_text {
     var $choices = array();
     var $sortable = false;
-    
+
     function render() {
         if (!is_array($this->value) || empty($this->value)) {
             $this->value = array();
@@ -461,7 +462,7 @@ class wp_option_set extends wp_option_text {
             $html = $this->render_as_sortable($current_values);
             return wp_option::render($html);
         }
-        
+
         ob_start();
         ?>
         <?php $loopID = 0; foreach ($this->choices as $key => $label) : ?>
@@ -474,7 +475,7 @@ class wp_option_set extends wp_option_text {
         ob_end_clean();
         return wp_option::render($html);
     }
-    
+
     function render_sort_js() {
         global $wp_option_set__sort_js_printed;
         if ($wp_option_set__sort_js_printed == true) {
@@ -490,24 +491,24 @@ class wp_option_set extends wp_option_text {
                 var moved_data = $(holder).prev().find('.sort-data .chunk').remove();
                 $(holder).prev().find('.sort-data').append(move_data);
                 $(holder).find('.sort-data').append(moved_data);
-                
+
                 return false;
             });
-            
+
             $('.sort-line .move-down').live('click', function () {
                 var holder = $(this).parents('.sort-line');
                 var move_data = $(holder).find('.sort-data .chunk').remove();
                 var moved_data = $(holder).next().find('.sort-data .chunk').remove();
                 $(holder).next().find('.sort-data').append(move_data);
                 $(holder).find('.sort-data').append(moved_data);
-                
+
                 return false;
             });
         })(jQuery)
         </script>
         <?php
     }
-    
+
     /* NOTE: In order sorting to work you need to use get_pages() + foreach because wp_list_pages() ignores the order you input IDs in the include= clause */
     function render_as_sortable($current_values) {
         $nice_choices = array();
@@ -522,7 +523,7 @@ class wp_option_set extends wp_option_text {
                     } else {
                         $sliced_choices = array_slice($sliced_choices, 1);
                     }
-                    
+
                 }
             }
             $sliced_choices = array_flip($sliced_choices);
@@ -530,7 +531,7 @@ class wp_option_set extends wp_option_text {
         } else {
             $nice_choices = $this->choices;
         }
-        
+
         ob_start();
         ?>
         <?php $loopID = 0; foreach ($nice_choices as $key => $label) : ?>
@@ -558,15 +559,15 @@ class wp_option_set extends wp_option_text {
         ob_end_clean();
         return $html;
     }
-    
+
     function add_choices($array) {
         $this->choices = $array;
     }
-    
+
     function save() {
         update_option($this->name, $this->value);
     }
-    
+
     function create_sortable() {
         $this->sortable = true;
         return $this;
@@ -577,9 +578,9 @@ class wp_option_choose_pages extends wp_option_set {
     function init() {
         $raw_pages = get_pages('child_of=0&parent=0');
         $nice_pages = array();
-        
+
         $raw_pages = is_array($raw_pages) ? $raw_pages : array();
-        
+
         foreach ($raw_pages as $p) {
             $nice_pages[$p->ID] = $p->post_title;
         }
@@ -600,7 +601,7 @@ class wp_option_choose_categories extends wp_option_set {
 }
 class wp_option_choose_links_category extends wp_option_set {
     function init() {
-        
+
     }
 }
 
@@ -609,14 +610,14 @@ class wp_option_color extends wp_option_text {
     function admin_init() {
         $token = wp_create_nonce(mt_rand());
         $this->html_class_name = "colorpicker_$token";
-        
+
         $handle = 'jq_colorpicker';
         $js_src = get_bloginfo('stylesheet_directory') . '/lib/theme-options/colorpicker/colorpicker.js';
         $css_src = get_bloginfo('stylesheet_directory') . '/lib/theme-options/colorpicker/colorpicker.css';
         $deps = array('jquery');
         wp_enqueue_script($handle, $js_src, $deps);
         wp_enqueue_style( $handle, $css_src);
-        
+
         // Append additional class name to the input
         $current_class = '';
         if (isset($this->html_attrs['class'])) {
@@ -624,7 +625,7 @@ class wp_option_color extends wp_option_text {
         }
         $new_class = "$current_class $this->html_class_name alignleft";
         $this->html_attrs['class'] = $new_class;
-        
+
         wp_option_text::admin_init();
         add_action('admin_footer', array($this, 'print_js'));
     }

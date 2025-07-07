@@ -30,7 +30,7 @@ class OptionsPage {
 	    	}
 	    }
 	    $this->options = $options;
-	    $this->theme_name = (string)wp_get_theme();//get_current_theme(); // 2017-12-08 deprecated
+	    $this->theme_name = wp_get_theme()->name;//get_current_theme(); // 2017-12-08 deprecated
 		$this->file = basename(__FILE__);
 	    $this->title = $this->theme_name . " Options";
 	    $this->needed_permissions = 'edit_themes';
